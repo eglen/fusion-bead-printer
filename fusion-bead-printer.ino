@@ -49,8 +49,8 @@ Servo dispenserServo;
 
 //These globals are scary, need to compartmentalise these better
 int dispenserStateIndex = 0;
-int dispenserStateTimer = millis(); //Avoid delay() that holds up the main loop
-const int dispenserStepDelay = 1000;
+unsigned long dispenserStateTimer = millis(); //Avoid delay() that holds up the main loop
+const int dispenserStepDelay = 200;
 const int dispenserDrop = 141;
 const int dispenserPickup = 120;
 const int dispenserShoogleFactor = 3;
