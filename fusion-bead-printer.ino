@@ -17,8 +17,6 @@
 #define selectorWheelPin 7
 #define dispenserPin 2
 
-#define colorWheelOffset 0
-
 //Keypad config
 const byte ROWS = 4; //four rows
 const byte COLS = 4; //four columns
@@ -65,6 +63,8 @@ int dispenserState[6] = {
   dispenserDrop - dispenserShoogleFactor //5 Dropoff jiggle
 };
 
+int colorSelection = 5;
+int colorWheelStep = 15; //Degrees between each position
 
 void setup() {
   stepper1.setMaxSpeed(5000.0);
@@ -84,8 +84,6 @@ void setup() {
 
 void loop() {
   
-  char key = keypad.getKey();
-  
   // stepper speed pot:
   int sensorReading = analogRead(A0);
   // stepper speed mapping
@@ -96,42 +94,47 @@ void loop() {
   //Analog input for various uses
   int analogIn = analogRead(A1);
   int analogMapped = map(analogIn, 0, 1023, 0, 180);
-  
-  //Color selector servo:
-  //int colorWheelServoPos = (colorSelection * 15) + colorWheelOffset;
-  int colorWheelServoPos = 90;//90 + colorWheelOffset;
-  colorWheelServo.write(colorWheelServoPos);
-  
-  //Dispenser servo
-  if (key == 'A') {
-    dispenserStateIndex = 1;
-    dispenserStateTimer = millis();
+ 
+  char key = keypad.getKey();
+  if (keypad.keyStateChanged()) {
+    //Dispenser servo
+    if (key == 'A') {
+      dispenserStateIndex = 1;
+      dispenserStateTimer = millis();
+    } else if (isDigit(key)) {
+      colorSelection = key - '0';
+    }
   }
   
-  updateColorServo();
+  
+  int colorWheelTargetPosition = updateColorServo();
   updateDispenserServo();
-  updateLcd(colorWheelServoPos, key);
+  updateLcd(colorWheelTargetPosition, key);
 }
 
-void updateColorServo() {
-  
+int updateColorServo() {
+    //Color selector servo:
+  int colorWheelServoPos = (colorSelection * colorWheelStep);
+  //int colorWheelServoPos = 90;//90 + colorWheelOffset;
+  colorWheelServo.write(colorWheelServoPos);
+  return colorWheelServoPos;
 }
 
 void updateDispenserServo() {
   //dispenserServo.write(115);
   dispenserServo.write(dispenserState[dispenserStateIndex]);
   //dispenserServo.write(analogMapped);
-  if (dispenserStateIndex != 0 && millis() - dispenserStateTimer > dispenserStepDelay) {
+  if (dispenserStateIndex != 0 && (millis() - dispenserStateTimer) > dispenserStepDelay) {
     dispenserStateTimer = millis();
     dispenserStateIndex = (dispenserStateIndex + 1) % 6;
   }
 }
 
-void updateLcd(int colorWheelServoPos, char key) {
+void updateLcd(int colorWheelTargetPosition, char key) {
   //lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("C: ");
-  lcd.print(colorWheelServoPos);
+  lcd.print(colorWheelTargetPosition);
   lcd.print(" ");
   lcd.setCursor(7, 0);
   lcd.print(" D: ");
