@@ -51,8 +51,8 @@ Servo dispenserServo;
 int dispenserStateIndex = 0;
 unsigned long dispenserStateTimer = millis(); //Avoid delay() that holds up the main loop
 const int dispenserStepDelay = 200;
-const int dispenserDrop = 141;
-const int dispenserPickup = 120;
+const int dispenserDrop = 135;
+const int dispenserPickup = 115;
 const int dispenserShoogleFactor = 3;
 int dispenserState[6] = {
   dispenserDrop, //0 Drop location
@@ -65,6 +65,7 @@ int dispenserState[6] = {
 
 int colorSelection = 5;
 int colorWheelStep = 15; //Degrees between each position
+int colorWheelAdjustment = 0;
 
 void setup() {
   stepper1.setMaxSpeed(5000.0);
@@ -103,6 +104,10 @@ void loop() {
       dispenserStateTimer = millis();
     } else if (isDigit(key)) {
       colorSelection = key - '0';
+    } else if (key == '*') {
+      colorWheelAdjustment--;
+    } else if (key == '#') {
+      colorWheelAdjustment++;
     }
   }
   
@@ -114,7 +119,7 @@ void loop() {
 
 int updateColorServo() {
     //Color selector servo:
-  int colorWheelServoPos = (colorSelection * colorWheelStep);
+  int colorWheelServoPos = colorWheelAdjustment + colorWheelStep + (colorSelection * colorWheelStep);
   //int colorWheelServoPos = 90;//90 + colorWheelOffset;
   colorWheelServo.write(colorWheelServoPos);
   return colorWheelServoPos;
